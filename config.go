@@ -5,6 +5,7 @@ import (
 
 	"github.com/mholt/caddy"
 	"github.com/mholt/caddy/caddyhttp/httpserver"
+	"github.com/learnfromgirls/safesecrets"
 )
 
 // RuleType distinguishes between ALLOW and DENY rules
@@ -55,11 +56,31 @@ type AccessRule struct {
 	Value     string
 }
 
+var secretSetters []safesecrets.SecretSetter
+
+func appendSS(ssa []safesecrets.SecretSetter, ssa2... safesecrets.SecretSetter){
+	append(ssa, ssa2)
+}
+
 func init() {
 	caddy.RegisterPlugin("jwt", caddy.Plugin{
 		ServerType: "http",
 		Action:     Setup,
 	})
+	caddy.RegisterEventHook("setJWTSecret", setJWTSecretHook)
+}
+
+
+//type EventHook func(eventType EventName, eventInfo interface{}) error
+func setJWTSecretHook(eventType caddy.EventName, eventInfo interface{}) error {
+	fmt.Printf("event hook called %v info=%v\n", eventType, eventInfo)
+	if "setJWTSecret" == eventType {
+		for _, e := range secretSetters {
+			e.SetSecret([] byte(eventInfo))
+		}
+
+	}
+	return nil
 }
 
 // Setup is called by Caddy to parse the config block
@@ -92,6 +113,7 @@ func parse(c *caddy.Controller) ([]Rule, error) {
 	if err != nil {
 		return nil, err
 	}
+	appendSS(secretSetters , defaultKeyBackends)
 
 	// This parses the following config blocks
 	/*

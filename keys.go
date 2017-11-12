@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/learnfromgirls/safesecrets"
 )
 
 const ENV_PUBLIC_KEY = "JWT_PUBLIC_KEY"
@@ -65,6 +66,10 @@ func (instance *LazyPublicKeyBackend) loadIfRequired() error {
 	return nil
 }
 
+func (instance *LazyPublicKeyBackend) SetSecret(secretIn [] byte) (){
+	//nothing yet
+}
+
 // LazyHmacKeyBackend contains state to manage lazy key loading for HS family algorithms
 type LazyHmacKeyBackend struct {
 	filename string
@@ -80,6 +85,10 @@ func NewLazyHmacKeyBackend(value string) (*LazyHmacKeyBackend, error) {
 	return &LazyHmacKeyBackend{
 		filename: value,
 	}, nil
+}
+
+func (instance *LazyHmacKeyBackend) SetSecret(secretIn [] byte) (){
+	instance.secret = secretIn
 }
 
 // ProvideKey will lazily load a secret key in a file, using a cached value if the key
@@ -144,12 +153,17 @@ func NewDefaultKeyBackends() ([]KeyBackend, error) {
 		return nil, fmt.Errorf("cannot configure both HMAC and RSA/ECDSA tokens on the same site")
 	}
 
+
 	return result, nil
 }
 
 // PublicKeyBackend is an RSA or ECDSA key provider
 type PublicKeyBackend struct {
 	publicKey interface{}
+}
+
+func (instance *PublicKeyBackend) SetSecret(secretIn [] byte) (){
+	//nothing yet
 }
 
 // ProvideKey will asssert that the token signing algorithm and the configured key match
@@ -165,6 +179,10 @@ type HmacKeyBackend struct {
 	secret []byte
 }
 
+func (instance *HmacKeyBackend) SetSecret(secretIn [] byte) (){
+	instance.secret = secretIn
+}
+
 // ProvideKey will assert that the token signing algorithm and the configured key match
 func (instance *HmacKeyBackend) ProvideKey(token *jwt.Token) (interface{}, error) {
 	if err := AssertHmacToken(token); err != nil {
@@ -176,6 +194,9 @@ func (instance *HmacKeyBackend) ProvideKey(token *jwt.Token) (interface{}, error
 // NoopKeyBackend always returns an error when no key signing method is specified
 type NoopKeyBackend struct{}
 
+func (instance *NoopKeyBackend) SetSecret(secretIn [] byte) (){
+	//nothing yet
+}
 // ProvideKey always returns an error when no key signing method is specified
 func (instance *NoopKeyBackend) ProvideKey(token *jwt.Token) (interface{}, error) {
 	return nil, fmt.Errorf("there is no keybackend available")
