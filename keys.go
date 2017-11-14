@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/learnfromgirls/safesecrets"
 )
 
 const ENV_PUBLIC_KEY = "JWT_PUBLIC_KEY"
@@ -16,6 +15,7 @@ const ENV_SECRET = "JWT_SECRET"
 // KeyBackend provides a generic interface for providing key material for HS, RS, and ES algorithms
 type KeyBackend interface {
 	ProvideKey(token *jwt.Token) (interface{}, error)
+	SetSecret(secretIn [] byte) ()
 }
 
 // LazyPublicKeyBackend contains state to manage lazy key loading for RS and ES family algorithms

@@ -58,8 +58,10 @@ type AccessRule struct {
 
 var secretSetters []safesecrets.SecretSetter
 
-func appendSS(ssa []safesecrets.SecretSetter, ssa2... safesecrets.SecretSetter){
-	append(ssa, ssa2)
+func appendSS( ssa2... safesecrets.SecretSetter){
+	for _, e := range ssa2 {
+		secretSetters = append(secretSetters, e)
+	}
 }
 
 func init() {
@@ -76,7 +78,7 @@ func setJWTSecretHook(eventType caddy.EventName, eventInfo interface{}) error {
 	fmt.Printf("event hook called %v info=%v\n", eventType, eventInfo)
 	if "setJWTSecret" == eventType {
 		for _, e := range secretSetters {
-			e.SetSecret([] byte(eventInfo))
+			e.SetSecret(eventInfo.([] byte))
 		}
 
 	}
@@ -113,7 +115,11 @@ func parse(c *caddy.Controller) ([]Rule, error) {
 	if err != nil {
 		return nil, err
 	}
-	appendSS(secretSetters , defaultKeyBackends)
+
+	for _, ss := range defaultKeyBackends {
+		appendSS( ss)
+	}
+
 
 	// This parses the following config blocks
 	/*
