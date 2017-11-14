@@ -188,6 +188,7 @@ func (instance *HmacKeyBackend) ProvideKey(token *jwt.Token) (interface{}, error
 	if err := AssertHmacToken(token); err != nil {
 		return nil, err
 	}
+	//fmt.Printf("providekey secret starts with %v\n", instance.secret[0:2])
 	return instance.secret, nil
 }
 
